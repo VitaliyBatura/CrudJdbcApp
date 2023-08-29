@@ -1,0 +1,12 @@
+services:
+
+  db:
+    build:
+      dockerfile: Dockerfile
+    container_name: postgres-container
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=garage
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=test
