@@ -10,17 +10,17 @@ public class VehicleDto {
     private int id;
     private String type;
     private String model;
-    private Person person;
+    private int personId;
     private Set<Tyre> tyres;
 
     public VehicleDto() {
     }
 
-    public VehicleDto(int id, String type, String model, Person person, Set<Tyre> tyres) {
+    public VehicleDto(int id, String type, String model, int personId, Set<Tyre> tyres) {
         this.id = id;
         this.type = type;
         this.model = model;
-        this.person = person;
+        this.personId = personId;
         this.tyres = tyres;
     }
 
@@ -48,12 +48,12 @@ public class VehicleDto {
         this.model = model;
     }
 
-    public Person getPerson() {
-        return person;
+    public int getPerson() {
+        return personId;
     }
 
-    public void setPerson(Person person) {
-        this.person = person;
+    public void setPerson(int personId) {
+        this.personId = personId;
     }
 
     public Set<Tyre> getTyres() {
@@ -63,4 +63,5 @@ public class VehicleDto {
     public void setTyres(Set<Tyre> tyres) {
         this.tyres = tyres;
     }
+
 }

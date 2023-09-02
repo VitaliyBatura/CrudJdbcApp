@@ -1,16 +1,28 @@
 package org.example.dao.mapper;
 
-import org.example.dao.PersonDao;
-import org.example.dao.TyreDao;
+import org.example.dao.impl.PersonDaoImpl;
+import org.example.dao.impl.TyreDaoImpl;
 import org.example.model.dto.VehicleDto;
 import org.example.model.entity.Vehicle;
+import org.jetbrains.annotations.NotNull;
 
 public class VehicleMapper {
 
-    private PersonDao personDao;
-    private TyreDao tyreDao;
+    private PersonDaoImpl personDao;
+    private TyreDaoImpl tyreDao;
 
-    public VehicleMapper(PersonDao personDao, TyreDao tyreDao) {
+    public VehicleMapper() {
+    }
+
+    public VehicleMapper(PersonDaoImpl personDao) {
+        this.personDao = personDao;
+    }
+
+    public VehicleMapper(TyreDaoImpl tyreDao) {
+        this.tyreDao = tyreDao;
+    }
+
+    public VehicleMapper(PersonDaoImpl personDao, TyreDaoImpl tyreDao) {
         this.personDao = personDao;
         this.tyreDao = tyreDao;
     }

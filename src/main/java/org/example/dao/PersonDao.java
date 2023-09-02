@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface PersonDao {
 
-    void create(Person person) throws SQLException;
+    Person create(Person person) throws SQLException;
 
     Person readById(int id) throws SQLException;
 
     List<Person> readAll() throws SQLException;
 
-    void update(Person person) throws SQLException;
+    Person update(Person person) throws SQLException;
 
     void deleteById(int id) throws SQLException;
 }

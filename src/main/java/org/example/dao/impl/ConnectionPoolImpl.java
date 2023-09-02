@@ -2,6 +2,7 @@ package org.example.dao.impl;
 
 import org.example.dao.ConnectionPool;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -48,8 +49,9 @@ public class ConnectionPoolImpl implements ConnectionPool {
         Properties properties = new Properties();
         if (System.getProperty("url") == null) {
             try {
-                properties.load(Thread.currentThread().getContextClassLoader()
-                        .getResourceAsStream("application.properties"));
+                properties.load(new FileInputStream("src/main/resources/datasource.properties"));
+//                properties.load(Thread.currentThread().getContextClassLoader()
+//                        .getResourceAsStream("src/main/resources/datasource.properties"));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

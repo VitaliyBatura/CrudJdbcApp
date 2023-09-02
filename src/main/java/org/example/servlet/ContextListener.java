@@ -2,9 +2,6 @@ package org.example.servlet;
 
 import jakarta.servlet.annotation.WebListener;
 import org.example.dao.ConnectionPool;
-import org.example.dao.PersonDao;
-import org.example.dao.TyreDao;
-import org.example.dao.VehicleDao;
 import org.example.dao.impl.ConnectionPoolImpl;
 import org.example.dao.impl.PersonDaoImpl;
 import org.example.dao.impl.TyreDaoImpl;
@@ -24,9 +21,9 @@ import jakarta.servlet.ServletContextListener;
 public class ContextListener implements ServletContextListener {
 
     private ConnectionPool connectionPool;
-    private PersonDao personDao;
-    private VehicleDao vehicleDao;
-    private TyreDao tyreDao;
+    private PersonDaoImpl personDao;
+    private VehicleDaoImpl vehicleDao;
+    private TyreDaoImpl tyreDao;
     private PersonMapper personMapper;
     private VehicleMapper vehicleMapper;
     private TyreMapper tyreMapper;
@@ -46,7 +43,7 @@ public class ContextListener implements ServletContextListener {
         vehicleMapper = new VehicleMapper(personDao, tyreDao);
         tyreMapper = new TyreMapper(vehicleDao);
         personService = new PersonService(personDao, personMapper);
-        vehicleService = new VehicleService(vehicleDao, vehicleMapper);
+        vehicleService = new VehicleService(vehicleDao, tyreDao, vehicleMapper);
         tyreService = new TyreService(tyreDao, tyreMapper);
 
         servletContext.setAttribute("personService", personService);

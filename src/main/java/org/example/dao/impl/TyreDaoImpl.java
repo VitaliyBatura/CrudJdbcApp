@@ -4,6 +4,7 @@ import org.example.dao.ConnectionPool;
 import org.example.dao.TyreDao;
 import org.example.model.entity.Tyre;
 import org.example.model.entity.Vehicle;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -13,22 +14,28 @@ import java.util.Set;
 
 public class TyreDaoImpl implements TyreDao {
 
-    private final ConnectionPool connectionPool;
+    private ConnectionPool connectionPool;
 
+    private ConnectionImpl connectionImpl;
     public TyreDaoImpl(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
     }
 
     @Override
-    public void create(Tyre tyre) throws SQLException {
+    public Tyre create(@NotNull Tyre tyre) throws SQLException {
 
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO tyre " +
-                "(name, season) VALUES (?, ?)");
+                "(name, season) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
         preparedStatement.setString(1, tyre.getName());
         preparedStatement.setString(2, tyre.getSeason());
-        preparedStatement.execute();
-        connectionPool.releaseConnection(connection);
+        preparedStatement.executeUpdate();
+        ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+        if(generatedKeys.next()) {
+            tyre.setId(generatedKeys.getInt("id"));
+        }
+        //connectionPool.releaseConnection(connection);
+        return tyre;
     }
 
     @Override
@@ -36,7 +43,7 @@ public class TyreDaoImpl implements TyreDao {
 
         Tyre tyre = new Tyre();
         Set<Vehicle> vehicles = new LinkedHashSet<>();
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM tyre WHERE id = ?");
         preparedStatement.setInt(1, id);
         ResultSet resultSet = preparedStatement.executeQuery();
@@ -58,15 +65,14 @@ public class TyreDaoImpl implements TyreDao {
             vehicle.setModel(resultSet.getString("model"));
             vehicles.add(vehicle);
         }
-
-        connectionPool.releaseConnection(connection);
+        //connectionPool.releaseConnection(connection);
         return tyre;
     }
 
     @Override
     public List<Tyre> readAll() throws SQLException {
 
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery("SELECT * FROM tyre");
         List<Tyre> tyres = new ArrayList<>();
@@ -75,31 +81,42 @@ public class TyreDaoImpl implements TyreDao {
             Tyre tyre = readById(id);
             tyres.add(tyre);
         }
-
-        connectionPool.releaseConnection(connection);
+        //connectionPool.releaseConnection(connection);
         return tyres;
     }
 
     @Override
-    public void update(Tyre tyre) throws SQLException {
+    public Tyre update(Tyre tyre) throws SQLException {
 
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         PreparedStatement preparedStatement = connection.prepareStatement("UPDATE tyre SET name = ?, " +
                 "season = ? WHERE id = ?");
         preparedStatement.setString(1, tyre.getName());
         preparedStatement.setString(2, tyre.getSeason());
         preparedStatement.setInt(3, tyre.getId());
         preparedStatement.execute();
-        connectionPool.releaseConnection(connection);
+        //connectionPool.releaseConnection(connection);
+        return tyre;
     }
 
     @Override
     public void deleteById(int id) throws SQLException {
 
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         PreparedStatement deleteStatement = connection.prepareStatement("DELETE FROM tyre WHERE id = ?");
         deleteStatement.setInt(1, id);
         deleteStatement.execute();
-        connectionPool.releaseConnection(connection);
+        //connectionPool.releaseConnection(connection);
+    }
+
+    private TyreDaoImpl() {
+    }
+
+    private static class TyreDoaImplHolder {
+        private final static TyreDaoImpl instance = new TyreDaoImpl();
+    }
+
+    public static TyreDaoImpl getInstance() {
+        return TyreDaoImpl.TyreDoaImplHolder.instance;
     }
 }

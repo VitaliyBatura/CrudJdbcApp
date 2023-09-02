@@ -1,14 +1,17 @@
 package org.example.dao.mapper;
 
-import org.example.dao.VehicleDao;
+import org.example.dao.impl.VehicleDaoImpl;
 import org.example.model.dto.TyreDto;
 import org.example.model.entity.Tyre;
 
 public class TyreMapper {
 
-    private VehicleDao vehicleDao;
+    private VehicleDaoImpl vehicleDao;
 
-    public TyreMapper(VehicleDao vehicleDao) {
+    public TyreMapper() {
+    }
+
+    public TyreMapper(VehicleDaoImpl vehicleDao) {
         this.vehicleDao = vehicleDao;
     }
 

@@ -5,6 +5,7 @@ import org.example.dao.VehicleDao;
 import org.example.model.entity.Person;
 import org.example.model.entity.Tyre;
 import org.example.model.entity.Vehicle;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -14,31 +15,37 @@ import java.util.Set;
 
 public class VehicleDaoImpl implements VehicleDao {
 
-    private final ConnectionPool connectionPool;
+    private ConnectionPool connectionPool;
+    private ConnectionImpl connectionImpl;
 
     public VehicleDaoImpl(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
     }
 
     @Override
-    public void create(Vehicle vehicle) throws SQLException {
+    public Vehicle create(@NotNull Vehicle vehicle) throws SQLException {
 
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO vehicle " +
-                "(type, model, person_id) VALUES (?, ?, ?)");
+                "(type, model, person_id) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
         preparedStatement.setString(1, vehicle.getType());
         preparedStatement.setString(2, vehicle.getModel());
-        int personId = (int) Math.round(Math.random() * 4);
-        preparedStatement.setInt(3, personId);
-        preparedStatement.execute();
-        connectionPool.releaseConnection(connection);
+        //int personId = (int) Math.round(Math.random() * 4);
+        preparedStatement.setInt(3, vehicle.getPerson());
+        preparedStatement.executeUpdate();
+        ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+        if(generatedKeys.next()) {
+            vehicle.setId(generatedKeys.getInt("id"));
+        }
+        //connectionPool.releaseConnection(connection);
+        return vehicle;
     }
 
     @Override
     public Vehicle readById(int id) throws SQLException {
 
         Vehicle vehicle = new Vehicle();
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM vehicle WHERE id = ?");
         preparedStatement.setInt(1, id);
         ResultSet resultSet = preparedStatement.executeQuery();
@@ -50,7 +57,7 @@ public class VehicleDaoImpl implements VehicleDao {
             vehicle.setType(resultSet.getString("type"));
             vehicle.setModel(resultSet.getString("model"));
             personId = resultSet.getInt("person_id");
-            vehicle.setPerson(person);
+            vehicle.setPerson(person.getId());
             vehicle.setTyres(tyres);
         }
 
@@ -75,7 +82,7 @@ public class VehicleDaoImpl implements VehicleDao {
             tyres.add(tyre);
         }
 
-        connectionPool.releaseConnection(connection);
+        //connectionPool.releaseConnection(connection);
         return vehicle;
     }
 
@@ -83,7 +90,7 @@ public class VehicleDaoImpl implements VehicleDao {
     public List<Vehicle> readAll() throws SQLException {
 
         List<Vehicle> vehicles = new ArrayList<>();
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery("SELECT * FROM vehicle");
         while (resultSet.next()) {
@@ -91,14 +98,14 @@ public class VehicleDaoImpl implements VehicleDao {
             Vehicle vehicle = readById(id);
             vehicles.add(vehicle);
         }
-        connectionPool.releaseConnection(connection);
+        //connectionPool.releaseConnection(connection);
         return vehicles;
     }
 
     @Override
-    public void update(Vehicle vehicle) throws SQLException {
+    public Vehicle update(Vehicle vehicle) throws SQLException {
 
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         int id = vehicle.getId();
         String type = vehicle.getType();
         String model = vehicle.getModel();
@@ -108,16 +115,28 @@ public class VehicleDaoImpl implements VehicleDao {
         preparedStatement.setString(2, model);
         preparedStatement.setInt(3, id);
         preparedStatement.execute();
-        connectionPool.releaseConnection(connection);
+        //connectionPool.releaseConnection(connection);
+        return vehicle;
     }
 
     @Override
     public void deleteById(int id) throws SQLException {
 
-        Connection connection = connectionPool.getConnection();
+        Connection connection = connectionImpl.getConnections();
         PreparedStatement deleteStatement = connection.prepareStatement("DELETE FROM vehicle WHERE id = ?");
         deleteStatement.setInt(1, id);
-        deleteStatement.executeQuery();
-        connectionPool.releaseConnection(connection);
+        deleteStatement.executeUpdate();
+        //connectionPool.releaseConnection(connection);
+    }
+
+    private VehicleDaoImpl() {
+    }
+
+    private static class VehicleDoaImplHolder {
+        private final static VehicleDaoImpl instance = new VehicleDaoImpl();
+    }
+
+    public static VehicleDaoImpl getInstance() {
+        return VehicleDaoImpl.VehicleDoaImplHolder.instance;
     }
 }

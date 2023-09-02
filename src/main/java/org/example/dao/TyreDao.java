@@ -7,13 +7,13 @@ import java.util.List;
 
 public interface TyreDao {
 
-    void create(Tyre tyre) throws SQLException;
+    Tyre create(Tyre tyre) throws SQLException;
 
     Tyre readById(int id) throws SQLException;
 
     List<Tyre> readAll() throws SQLException;
 
-    void update(Tyre tyre) throws SQLException;
+    Tyre update(Tyre tyre) throws SQLException;
 
     void deleteById(int id) throws SQLException;
 }

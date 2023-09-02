@@ -2,13 +2,12 @@ package org.example.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
-import org.example.dao.VehicleDao;
+import org.example.dao.impl.TyreDaoImpl;
+import org.example.dao.impl.VehicleDaoImpl;
 import org.example.dao.mapper.VehicleMapper;
 import org.example.model.dto.VehicleDto;
 import org.example.model.entity.Vehicle;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -16,12 +15,21 @@ import java.util.stream.Collectors;
 
 public class VehicleService {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private VehicleDao vehicleDao;
-    private VehicleMapper vehicleMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
+    private VehicleDaoImpl vehicleDao;
+    private TyreDaoImpl tyreDao;
 
-    public VehicleService(VehicleDao vehicleDao, VehicleMapper vehicleMapper) {
+    VehicleMapper vehicleMapper = new VehicleMapper();
+
+    public VehicleService(VehicleDaoImpl vehicleDao, TyreDaoImpl tyreDao) {
+
         this.vehicleDao = vehicleDao;
+        this.tyreDao = tyreDao;
+    }
+
+    public VehicleService(VehicleDaoImpl vehicleDao, TyreDaoImpl tyreDao, VehicleMapper vehicleMapper) {
+        this.vehicleDao = vehicleDao;
+        this.tyreDao = tyreDao;
         this.vehicleMapper = vehicleMapper;
     }
 
@@ -49,41 +57,22 @@ public class VehicleService {
         return Optional.empty();
     }
 
-    public void handlePostRequest(HttpServletRequest req) throws SQLException {
+    public void handlePostRequest(Vehicle vehicle) throws SQLException {
 
-        VehicleDto vehicleDto = getVehicleDtoFromReqBody(req);
-        if (vehicleDto != null) {
-            vehicleDao.create(vehicleMapper.convertToVehicle(vehicleDto));
+        if (vehicle != null) {
+            vehicleDao.create(vehicle);
         }
     }
 
-    public void handlePutRequest(HttpServletRequest req) throws SQLException {
+    public void handlePutRequest(Vehicle vehicle) throws SQLException {
 
-        VehicleDto vehicleDto = getVehicleDtoFromReqBody(req);
-        if (vehicleDto != null) {
-            vehicleDao.update(vehicleMapper.convertToVehicle(vehicleDto));
+        if (vehicle != null) {
+            vehicleDao.update(vehicle);
         }
     }
 
-    public void handleDeleteRequest(HttpServletRequest req) throws SQLException {
+    public void handleDeleteRequest(int vehicleId) throws SQLException {
 
-        int id = Integer.parseInt(req.getParameter("id"));
-        vehicleDao.deleteById(id);
-    }
-
-    private VehicleDto getVehicleDtoFromReqBody(HttpServletRequest req) {
-
-        String requestBody = null;
-        try {
-            requestBody = req.getReader().lines().collect(Collectors.joining());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            return objectMapper.readValue(requestBody, VehicleDto.class);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
-        }
+        vehicleDao.deleteById(vehicleId);
     }
 }
