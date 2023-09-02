@@ -1,6 +1,5 @@
 package org.example.dao.impl;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,12 +11,15 @@ public class ConnectionImpl {
     public static Connection getConnections() throws SQLException {
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream("src/main/resources/datasource.properties"));
+            properties.load(ConnectionImpl.class.getResourceAsStream("/datasource.properties"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Connection connection = DriverManager.getConnection(properties.getProperty("url"),
+        String host = properties.getProperty("host");
+        String port = properties.getProperty("port");
+        String databaseName = properties.getProperty("databaseName");
+        String url = String.format("jdbc:postgresql://%s:%s/%s", host, port, databaseName);
+        return DriverManager.getConnection(url,
                 properties.getProperty("user"), properties.getProperty("password"));
-        return connection;
     }
 }

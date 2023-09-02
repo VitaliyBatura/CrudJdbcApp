@@ -2,6 +2,7 @@ package org.example;
 
 import org.example.model.entity.Person;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.Properties;
@@ -9,14 +10,14 @@ import java.util.Properties;
 public class Application {
     public static void main(String[] args) throws SQLException, IOException {
 
-        Person person = new Person("Oleg", "Zverev");
-
-
+//        Person person = new Person("Oleg", "Zverev");
+//
+//
 //        Properties properties = new Properties();
-//        properties.load(new FileInputStream("application.properties"));
+//        properties.load(new FileInputStream("src/main/resources/datasource.properties"));
 //        try (Connection connection = DriverManager.getConnection(properties.getProperty("url"),
 //                properties.getProperty("user"), properties.getProperty("password"));
-//             PreparedStatement statement = connection.prepareStatement("SELECT * FROM public.tyre WHERE id = ?")) {
+//             PreparedStatement statement = connection.prepareStatement("SELECT * FROM tyre WHERE id = ?")) {
 //            statement.setInt(1, 5);
 //            final ResultSet resultSet = statement.executeQuery();
 //            if (resultSet.next()) {
