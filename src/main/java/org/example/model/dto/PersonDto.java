@@ -14,6 +14,11 @@ public class PersonDto {
     public PersonDto() {
     }
 
+    public PersonDto(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
     public PersonDto(int id, String firstName, String lastName, List<Vehicle> vehicles) {
         this.id = id;
         this.firstName = firstName;

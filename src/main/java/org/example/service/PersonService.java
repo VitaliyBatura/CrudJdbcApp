@@ -52,19 +52,27 @@ public class PersonService {
         return Optional.empty();
     }
 
-    public void handlePostRequest(Person person) throws SQLException {
+    public Person handlePostRequest(Person person) throws SQLException {
 
-        if (person != null) {
             personDao.create(person);
-        }
+            return person;
     }
 
     public void handlePutRequest(Person person) throws SQLException {
+
         personDao.update(person);
     }
 
     public void handleDeleteRequest(int personId) throws SQLException {
 
         personDao.deleteById(personId);
+    }
+
+    private static class PersonServiceHolder {
+        private final static PersonService instance = new PersonService();
+    }
+
+    public static PersonService getInstance() {
+        return PersonService.PersonServiceHolder.instance;
     }
 }

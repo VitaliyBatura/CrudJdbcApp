@@ -1,29 +1,27 @@
 package org.example.servlet;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.example.dao.mapper.VehicleMapper;
-import org.example.model.dto.VehicleDto;
 import org.example.model.entity.Vehicle;
 import org.example.service.VehicleService;
 
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 
-@WebServlet(urlPatterns = "/vehicle/*")
+@WebServlet(value = "/vehicle/*")
 public class VehicleServlet extends HttpServlet {
 
-    private VehicleService vehicleService;
+    private VehicleService vehicleService = VehicleService.getInstance();
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private VehicleMapper vehicleMapper;
+    private VehicleMapper vehicleMapper = new VehicleMapper();
 
     @Override
     public void init() {
@@ -31,13 +29,13 @@ public class VehicleServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         String vehicleId = req.getParameter("id");
         resp.setContentType("application/json; charset=UTF-8");
         resp.setStatus(200);
         try {
-            String responseBody = vehicleService.handleGetRequest(vehicleId).get();
+            String responseBody = vehicleService.handleGetRequest(vehicleId).toString();
             PrintWriter printWriter = resp.getWriter();
             printWriter.write(responseBody);
         } catch (SQLException throwable) {
@@ -46,49 +44,45 @@ public class VehicleServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) {
 
+        String responseJson;
         try {
-            vehicleService.handlePostRequest(getVehicleDtoFromReqBody(req));
-        } catch (SQLException throwable) {
-            throwable.printStackTrace();
+            String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+            Vehicle vehicle = objectMapper.readValue(requestBody, Vehicle.class);
+            vehicleService.handlePostRequest(vehicle);
+            responseJson = objectMapper.writeValueAsString(vehicle);
+            resp.getWriter().append(responseJson);
+        } catch (SQLException | IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) {
+    public void doPut(HttpServletRequest req, HttpServletResponse resp) {
 
+        String responseJson;
         try {
-            vehicleService.handlePutRequest(getVehicleDtoFromReqBody(req));
+            String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+            Vehicle vehicle = objectMapper.readValue(requestBody, Vehicle.class);
+            vehicleService.handlePutRequest(vehicle);
+            responseJson = objectMapper.writeValueAsString(vehicle);
+            resp.getWriter().append(responseJson);
         } catch (SQLException throwable) {
             throwable.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) {
-
-        try {
-            vehicleService.handleDeleteRequest(Integer.parseInt(req.getParameter("id")));
-        } catch (SQLException throwable) {
-            throwable.printStackTrace();
-        }
-    }
-
-    private Vehicle getVehicleDtoFromReqBody(HttpServletRequest req) {
-
-        String requestBody = null;
-        try {
-            requestBody = req.getReader().lines().collect(Collectors.joining());
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
+
         try {
-            VehicleDto vehicleDto = objectMapper.readValue(requestBody, VehicleDto.class);
-            return vehicleMapper.convertToVehicle(vehicleDto);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
+            int id = Integer.parseInt(req.getParameter("id"));
+            vehicleService.handleDeleteRequest(id);
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
         }
     }
 }

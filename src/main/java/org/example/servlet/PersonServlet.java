@@ -1,9 +1,7 @@
 package org.example.servlet;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dao.mapper.PersonMapper;
-import org.example.model.dto.PersonDto;
 import org.example.model.entity.Person;
 import org.example.service.PersonService;
 
@@ -16,14 +14,13 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 
-@WebServlet(urlPatterns = "/person/*")
+@WebServlet(value = "/person/*")
 public class PersonServlet extends HttpServlet {
 
-    private PersonService personService;
-
+    private PersonService personService = PersonService.getInstance();
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private PersonMapper personMapper;
+    private PersonMapper personMapper = new PersonMapper();
 
     @Override
     public void init() {
@@ -31,13 +28,13 @@ public class PersonServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         String id = req.getParameter("id");
         resp.setContentType("application/json; charset=UTF-8");
         resp.setStatus(200);
         try {
-            String getResponse = personService.handleGetRequest(id).get();
+            String getResponse = personService.handleGetRequest(id).toString();
             PrintWriter printWriter = resp.getWriter();
             printWriter.write(getResponse);
         } catch (SQLException throwable) {
@@ -46,10 +43,30 @@ public class PersonServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) {
 
+        String responseJson;
         try {
-            personService.handlePostRequest(getPersonDtoFromRequestBody(req));
+            String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+            Person person = objectMapper.readValue(requestBody, Person.class);
+            personService.handlePostRequest(person);
+            responseJson = objectMapper.writeValueAsString(person);
+            resp.getWriter().append(responseJson);
+        } catch (SQLException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void doPut(HttpServletRequest req, HttpServletResponse resp) {
+
+        String responseJson;
+        try {
+            String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+            Person person = objectMapper.readValue(requestBody, Person.class);
+            personService.handlePutRequest(person);
+            responseJson = objectMapper.writeValueAsString(person);
+            resp.getWriter().append(responseJson);
         } catch (SQLException throwable) {
             throwable.printStackTrace();
         } catch (IOException e) {
@@ -58,41 +75,13 @@ public class PersonServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) {
+    public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
 
         try {
-            personService.handlePutRequest(getPersonDtoFromRequestBody(req));
-        } catch (SQLException throwable) {
-            throwable.printStackTrace();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) {
-
-        try {
-            personService.handleDeleteRequest(Integer.parseInt(req.getParameter("id")));
+            int id = Integer.parseInt(req.getParameter("id"));
+            personService.handleDeleteRequest(id);
         } catch (SQLException throwable) {
             throwable.printStackTrace();
         }
-    }
-
-    private Person getPersonDtoFromRequestBody(HttpServletRequest req) throws IOException {
-
-        String requestBody = null;
-        try {
-            requestBody = req.getReader().lines().collect(Collectors.joining());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            PersonDto persondto = objectMapper.readValue(requestBody, PersonDto.class);
-            return personMapper.convertToPerson(persondto);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }

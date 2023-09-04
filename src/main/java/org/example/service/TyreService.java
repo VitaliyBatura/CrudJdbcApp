@@ -27,6 +27,10 @@ public class TyreService {
         this.tyreMapper = tyreMapper;
     }
 
+    public TyreService() {
+
+    }
+
 
     public Optional<String> handleGetRequest(String parameter) throws SQLException {
 
@@ -71,5 +75,13 @@ public class TyreService {
     public void handleDeleteRequest(int tyreId) throws SQLException {
 
         tyreDao.deleteById(tyreId);
+    }
+
+    private static class TyreServiceHolder {
+        private final static TyreService instance = new TyreService();
+    }
+
+    public static TyreService getInstance() {
+        return TyreService.TyreServiceHolder.instance;
     }
 }

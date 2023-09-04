@@ -33,6 +33,10 @@ public class VehicleService {
         this.vehicleMapper = vehicleMapper;
     }
 
+    public VehicleService() {
+
+    }
+
     public Optional<String> handleGetRequest(String parameter) throws SQLException {
 
         if (parameter == null) {
@@ -74,5 +78,13 @@ public class VehicleService {
     public void handleDeleteRequest(int vehicleId) throws SQLException {
 
         vehicleDao.deleteById(vehicleId);
+    }
+
+    private static class VehicleServiceHolder {
+        private final static VehicleService instance = new VehicleService();
+    }
+
+    public static VehicleService getInstance() {
+        return VehicleService.VehicleServiceHolder.instance;
     }
 }

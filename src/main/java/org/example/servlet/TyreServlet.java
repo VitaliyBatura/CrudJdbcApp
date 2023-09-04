@@ -1,29 +1,26 @@
 package org.example.servlet;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.example.dao.mapper.TyreMapper;
-import org.example.model.dto.TyreDto;
 import org.example.model.entity.Tyre;
 import org.example.service.TyreService;
 
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 
-@WebServlet(urlPatterns = "/tyre/*")
+@WebServlet(value = "/tyre/*")
 public class TyreServlet extends HttpServlet {
 
-    private TyreService tyreService;
-
+    private TyreService tyreService = TyreService.getInstance();
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private TyreMapper tyreMapper;
+    private TyreMapper tyreMapper = new TyreMapper();
 
     @Override
     public void init() {
@@ -31,67 +28,58 @@ public class TyreServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-        String parameter = req.getParameter("id");
+        String tyreId = req.getParameter("id");
         resp.setContentType("application/json; charset=UTF-8");
         resp.setStatus(200);
-        String getResponse = null;
         try {
-            getResponse = tyreService.handleGetRequest(parameter).get();
-        } catch (SQLException throwable) {
-            throwable.printStackTrace();
-        }
-        PrintWriter printWriter = resp.getWriter();
-        if (getResponse != null) {
-            printWriter.write(getResponse);
-        }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-
-        try {
-            tyreService.handlePostRequest(getTyreDtoFromRequestBody(req));
+            String responseBody = tyreService.handleGetRequest(tyreId).toString();
+            PrintWriter printWriter = resp.getWriter();
+            printWriter.write(responseBody);
         } catch (SQLException throwable) {
             throwable.printStackTrace();
         }
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) {
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) {
 
+        String responseJson;
         try {
-            tyreService.handlePutRequest(getTyreDtoFromRequestBody(req));
-        } catch (SQLException throwable) {
+            String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+            Tyre tyre = objectMapper.readValue(requestBody, Tyre.class);
+            tyreService.handlePostRequest(tyre);
+            responseJson = objectMapper.writeValueAsString(tyre);
+            resp.getWriter().append(responseJson);
+        } catch (SQLException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void doPut(HttpServletRequest req, HttpServletResponse resp) {
+
+        String responseJson;
+        try {
+            String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+            Tyre tyre = objectMapper.readValue(requestBody, Tyre.class);
+            tyreService.handlePutRequest(tyre);
+            responseJson = objectMapper.writeValueAsString(tyre);
+            resp.getWriter().append(responseJson);
+        } catch (SQLException | IOException throwable) {
             throwable.printStackTrace();
         }
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) {
+    public void doDelete(HttpServletRequest req, HttpServletResponse resp) {
 
         try {
-            tyreService.handleDeleteRequest(Integer.parseInt(req.getParameter("id")));
+            int id = Integer.parseInt(req.getParameter("id"));
+            tyreService.handleDeleteRequest(id);
         } catch (SQLException throwable) {
             throwable.printStackTrace();
-        }
-    }
-
-    private Tyre getTyreDtoFromRequestBody(HttpServletRequest req) {
-
-        String requestBody = null;
-        try {
-            requestBody = req.getReader().lines().collect(Collectors.joining());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            TyreDto tyreDto = objectMapper.readValue(requestBody, TyreDto.class);
-            return tyreMapper.convertToTyre(tyreDto);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
         }
     }
 }
