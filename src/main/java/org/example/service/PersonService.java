@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dao.impl.PersonDaoImpl;
 import org.example.dao.mapper.PersonMapper;
+import org.example.dao.mapper.TyreMapper;
 import org.example.model.dto.PersonDto;
 import org.example.model.entity.Person;
 
@@ -16,8 +17,7 @@ public class PersonService {
 
     private ObjectMapper objectMapper = new ObjectMapper();
     private PersonDaoImpl personDao;
-    private PersonMapper personMapper;
-
+    PersonMapper personMapper = new PersonMapper();
     public PersonService() {
     }
 
@@ -31,6 +31,7 @@ public class PersonService {
     }
 
     public Optional<String> handleGetRequest(String parameter) throws SQLException {
+
         if (parameter == null) {
             List<PersonDto> persons = personDao.readAll().stream().map(person ->
                     personMapper.convertToPersonDto(person)).collect(Collectors.toList());
@@ -42,7 +43,10 @@ public class PersonService {
         } else {
             int id = Integer.parseInt(parameter);
             Person person = personDao.readById(id);
-            PersonDto personDto = personMapper.convertToPersonDto(person);
+            PersonDto personDto = new PersonDto();
+            if(person != null) {
+                personDto = personMapper.convertToPersonDto(person);
+            }
             try {
                 return Optional.ofNullable(objectMapper.writeValueAsString(personDto));
             } catch (JsonProcessingException e) {

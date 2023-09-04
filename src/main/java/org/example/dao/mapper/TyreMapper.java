@@ -23,13 +23,4 @@ public class TyreMapper {
         tyreDto.setVehicles(tyre.getVehicles());
         return tyreDto;
     }
-
-    public Tyre convertToTyre(TyreDto tyreDto) {
-        Tyre tyre = new Tyre();
-        tyre.setId(tyreDto.getId());
-        tyre.setName(tyreDto.getName());
-        tyre.setSeason(tyreDto.getSeason());
-        tyre.setVehicles(tyreDto.getVehicles());
-        return tyre;
-    }
 }

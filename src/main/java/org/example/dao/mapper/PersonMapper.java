@@ -24,14 +24,4 @@ public class PersonMapper {
         personDto.setVehicles(person.getVehicles());
         return personDto;
     }
-
-    public Person convertToPerson(PersonDto personDto) {
-
-        Person person = new Person();
-        person.setId(personDto.getId());
-        person.setFirstName(personDto.getFirstName());
-        person.setLastName(personDto.getLastName());
-        person.setVehicles(personDto.getVehicles());
-        return person;
-    }
 }

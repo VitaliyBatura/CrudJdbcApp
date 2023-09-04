@@ -1,6 +1,5 @@
 package org.example.model.dto;
 
-import org.example.model.entity.Person;
 import org.example.model.entity.Tyre;
 
 import java.util.Set;

@@ -4,7 +4,6 @@ import org.example.dao.impl.PersonDaoImpl;
 import org.example.dao.impl.TyreDaoImpl;
 import org.example.model.dto.VehicleDto;
 import org.example.model.entity.Vehicle;
-import org.jetbrains.annotations.NotNull;
 
 public class VehicleMapper {
 
@@ -35,15 +34,5 @@ public class VehicleMapper {
         vehicleDto.setPerson(vehicle.getPerson());
         vehicleDto.setTyres(vehicle.getTyres());
         return vehicleDto;
-    }
-
-    public Vehicle convertToVehicle(VehicleDto vehicleDto) {
-        Vehicle vehicle = new Vehicle();
-        vehicle.setId(vehicleDto.getId());
-        vehicle.setType(vehicleDto.getType());
-        vehicle.setModel(vehicleDto.getModel());
-        vehicle.setPerson(vehicleDto.getPerson());
-        vehicle.setTyres(vehicleDto.getTyres());
-        return vehicle;
     }
 }
